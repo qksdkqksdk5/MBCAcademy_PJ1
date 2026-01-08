@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
 import streamlit as st
 import seaborn as sns
 import matplotlib.font_manager as fm
 
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 # ------------------
 # 한글 폰트 설정 (Streamlit 대응)
@@ -24,11 +24,12 @@ def set_korean_font():
         pass
 
 
-@st.cache_data
-def run_logistic(df):
+def run_logistic(df, selected_district):
     set_korean_font()
 
     df = df.copy()
+    df = df[df['district']==selected_district]
+    # 증가했으면 1 : 안했으면 0
     df["car_increase"] = (df["car_diff"] > 0).astype(int)
 
     X = df[["population_diff"]]
@@ -80,19 +81,15 @@ def run_logistic(df):
     # ------------------
     # 확률 곡선
     # ------------------
-    pop_range = np.linspace(
-        df["population_diff"].min(),
-        df["population_diff"].max(),
-        100
-    ).reshape(-1, 1)
-
-    prob = model.predict_proba(pop_range)[:, 1]
+    pop_range = np.linspace(df["population_diff"].min(), df["population_diff"].max(), 100).reshape(-1, 1)
+    pop_range_df = pd.DataFrame(pop_range,columns=["population_diff"])
+    prob = model.predict_proba(pop_range_df)[:, 1]
 
     fig_prob, ax_prob = plt.subplots(figsize=(4.5, 3.5))
 
     ax_prob.plot(pop_range, prob)
-    ax_prob.set_xlabel("생활인구 변화량")
+    ax_prob.set_xlabel("인구 변화량")
     ax_prob.set_ylabel("자동차 등록 증가 확률")
-    ax_prob.set_title("생활인구 변화에 따른 자동차 등록 증가 확률")
+    ax_prob.set_title("인구 변화에 따른 자동차 등록 증가 확률")
 
     return fig_cm, fig_prob, accuracy, coef

@@ -4,17 +4,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
-import streamlit as st
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 
-@st.cache_data
-def run_regression(df):
-    # ------------------
-    # 변수 선택
-    # ------------------
+def run_regression(df, selected_district):
+    
+    df = df[df['district']==selected_district]
     X = df[["population_diff"]]
     y = df["car_diff"]
-
     # ------------------
     # 기초 통계
     # ------------------
@@ -24,11 +21,11 @@ def run_regression(df):
     # ------------------
     # 선형 회귀
     # ------------------
-    model = LinearRegression()
-    model.fit(X, y)
+    model_raw = LinearRegression()
+    model_raw.fit(X, y)
 
-    coef = model.coef_[0]
-    intercept = model.intercept_
+    coef = model_raw.coef_[0]
+    intercept = model_raw.intercept_
 
     coef_df = pd.DataFrame({
         "Coefficient": [coef],
@@ -36,30 +33,19 @@ def run_regression(df):
     }, index=["population_diff"])
 
     # ------------------
-    # 표준화 회귀
+    # 모델 성능
     # ------------------
-    scaler_x = StandardScaler()
-    scaler_y = StandardScaler()
-
-    X_scaled = scaler_x.fit_transform(X)
-    y_scaled = scaler_y.fit_transform(y.values.reshape(-1, 1))
-
-    model.fit(X_scaled, y_scaled)
-    std_coef = model.coef_[0][0]
-
-    std_coef_df = pd.DataFrame({
-        "Standardized Coefficient": [std_coef]
-    }, index=["population_diff"])
+    r2 = model_raw.score(X,y)
 
     # ------------------
     # 시각화
     # ------------------
-    fig, ax = plt.subplots(figsize=(5, 3.5))
+    fig, ax = plt.subplots(figsize=(5, 3.5)) #fig(도화지) ax(그래프)
 
     ax.scatter(X, y, alpha=0.4)
-    ax.plot(X, model.predict(X), color="red")
+    ax.plot(X, model_raw.predict(X), color="red")
 
     ax.set_xlabel("population_diff")
     ax.set_ylabel("car_diff")
 
-    return fig, desc, corr, coef_df, std_coef_df
+    return fig, desc, corr, coef_df, r2
