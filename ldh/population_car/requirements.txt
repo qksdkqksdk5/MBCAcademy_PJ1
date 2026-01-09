@@ -1,9 +1,0 @@
-Mysql 
-Streamlit 
-Pandas 
-Plotly 
-Matplotlib 
-Sqlalchemy 
-Numpy 
-openpyxl
-pymysql
